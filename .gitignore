@@ -1,2 +1,4 @@
 venv
 pysql_manager.egg-info
+dist
+build
