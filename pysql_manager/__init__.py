@@ -24,7 +24,6 @@ class PySql:
         )
         self._meta_class = meta_class
         self.columns = list(filter(lambda x: isinstance(getattr(self._meta_class, x), Column), dir(meta_class)))
-        print(self.columns)
         try:
             self.table = getattr(self._meta_class, "__table__")
         except AttributeError:
@@ -51,13 +50,20 @@ class PySql:
     def insert(self, ins_data: List[dict], update_on_duplicate=None):
         query = f"INSERT INTO {self.table}({','.join(self.columns)}) VALUES "
         gen = ["(" + ','.join([f"'{data.get(col)}'" for col in self.columns]) + ")" for data in ins_data]
-        print(self.columns)
         ex_query = query + ",".join(gen)
         if update_on_duplicate is not None:
             ex_query += "ON DUPLICATE KEY UPDATE " + ",".join([f"{col}=VALUES({col})" for col in update_on_duplicate])
 
-        print(ex_query)
         self._cursor.execute(ex_query)
 
         self.db.commit()
         return self
+
+    def upload_from_csv(self, file_path: str, header=False, sep=",", ignore_index=None, update_on_duplicate=None):
+        with open(file_path) as file_buffer:
+            while True:
+                break
+                pass
+
+
+
