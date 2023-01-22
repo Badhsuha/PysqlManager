@@ -2,7 +2,7 @@ from typing import List
 
 import mysql.connector
 from mysql.connector.errors import ProgrammingError
-from .bases import PySqlCollection
+from .bases import PySqlCollection, PySqlFilterObj
 from .types import Column
 from .errors import ColumnNotFountInClass, TableNotFoundInClass
 
@@ -44,8 +44,13 @@ class PySql:
             raise (ColumnNotFountInClass(kwargs.keys(), self.table))
         else:
             where_clause = " and ".join([f"{key}='{kwargs[key]}'" for key in kwargs])
-            self._cursor.execute(f"SELECT {','.join(self.columns)} from {self.table} WHERE {where_clause}")
-            return PySqlCollection(self._cursor.fetchall(), self.columns, self._meta_class)
+            return PySqlFilterObj(filter_query=where_clause,
+                                  cursor=self._cursor,
+                                  meta_class=self._meta_class,
+                                  columns=self.columns,
+                                  table=self.table,
+                                  db=self.db
+                                  )
 
     def insert(self, ins_data: List[dict], update_on_duplicate=None):
         query = f"INSERT INTO {self.table}({','.join(self.columns)}) VALUES "
@@ -58,12 +63,6 @@ class PySql:
 
         self.db.commit()
         return self
-
-    def upload_from_csv(self, file_path: str, header=False, sep=",", ignore_index=None, update_on_duplicate=None):
-        with open(file_path) as file_buffer:
-            while True:
-                break
-                pass
 
 
 

@@ -7,23 +7,12 @@ class User:
     age = Column(col_type=IntegerType())
     __table__ = "User"
 
-#
-
-class BillingTable:
-    id = StringType(255)
-    revenue = IntegerType()
-    spend = IntegerType()
-    paidImpressions = IntegerType()
-    entity = StringType(25)
-    resourceId = IntegerType()
-    timeZone = StringType(6)
-    date = StringType(25)
-
-    __table__ = "tbl_daily_monthly_billing"
 
 users = PySql("localhost", "root", "Probadhu@1122", "Test", User)
 
+# users.filter(age=24).update(age=1, name="Akhil")
 users.fetch_all.show()
+
 # # data = [{"id": 13, "age": 26}, {"id": 14, "name": "Faisal", "age": 26}]
 # #
 # # users.insert(data, update_on_duplicate=["name", "age"])

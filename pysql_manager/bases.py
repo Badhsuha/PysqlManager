@@ -1,6 +1,6 @@
 from csv import DictWriter
 from pandas import DataFrame
-from .errors import EmptyPysqlCollectionError
+from .errors import EmptyPysqlCollectionError, ColumnNotFountInClass
 
 """
 Dynamic Class Creation from given meta class Class base
@@ -79,3 +79,35 @@ class PySqlCollection:
         mysql_data = list(map(lambda x: (getattr(x, col) for col in columns), self.__data__))
 
         return PySqlCollection(mysql_data, columns, self.__meta_class)
+
+
+class PySqlFilterObj:
+    def __init__(self, filter_query, cursor, meta_class, columns, table, db):
+        self.columns = columns
+        self._filter_query = filter_query
+        self._cursor = cursor
+        self._meta_class = meta_class
+        self.table = table
+        self._db = db
+
+    def update(self, *args, **kwargs):
+        if not all([key in self.columns for key in kwargs.keys()]):
+            raise (ColumnNotFountInClass(kwargs.keys(), self.table))
+        else:
+            set_array = [f"{key}='{kwargs[key]}'" for key in kwargs.keys()]
+            query = f"UPDATE {self.table} SET " + f"{','.join(set_array)}" + f" WHERE {self._filter_query}"
+            self._cursor.execute(query)
+            self._db.commit()
+            # print(query)
+            print("Update Done")
+
+    def delete(self):
+        query = f"DELETE FROM {self.table} WHERE " + self._filter_query
+        self._cursor.execute(query)
+        self._db.commit()
+        print("Deletion Done")
+
+    @property
+    def fetch_filtered(self):
+        self._cursor.execute(f"SELECT {','.join(self.columns)} from {self.table} WHERE {self._filter_query}")
+        return PySqlCollection(self._cursor.fetchall(), self.columns, self._meta_class)
