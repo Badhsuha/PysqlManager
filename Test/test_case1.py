@@ -23,4 +23,4 @@ users.fetch_all.show()
 #
 # billing_tbl = PySql("localhost", "root", "Probadhu@1122", "appexplorer", BillingTable)
 #
-# billing_tbl.insert(data)
+# billing_tbl.insert(data
