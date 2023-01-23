@@ -9,10 +9,10 @@ from .errors import ColumnNotFountInClass, TableNotFoundInClass
 __version__ = "0.1.0"
 __author__ = 'Badhusha K Muhammed'
 
-
 """
 Main Class for bkm-pysql_manager, Used to connect to mysql, Getting data and create PySqpDataCollection
 """
+
 
 class PySql:
     def __init__(self, host, username, password, dbname, meta_class):
@@ -39,18 +39,14 @@ class PySql:
         except ProgrammingError as e:
             print(e)
 
-    def filter(self, *args, **kwargs):
-        if not all([key in self.columns for key in kwargs.keys()]):
-            raise (ColumnNotFountInClass(kwargs.keys(), self.table))
-        else:
-            where_clause = " and ".join([f"{key}='{kwargs[key]}'" for key in kwargs])
-            return PySqlFilterObj(filter_query=where_clause,
-                                  cursor=self._cursor,
-                                  meta_class=self._meta_class,
-                                  columns=self.columns,
-                                  table=self.table,
-                                  db=self.db
-                                  )
+    def filter(self, filter_opt):
+        return PySqlFilterObj(filter_query=filter_opt,
+                              cursor=self._cursor,
+                              meta_class=self._meta_class,
+                              columns=self.columns,
+                              table=self.table,
+                              db=self.db
+                              )
 
     def insert(self, ins_data: List[dict], update_on_duplicate=None):
         query = f"INSERT INTO {self.table}({','.join(self.columns)}) VALUES "
@@ -63,6 +59,3 @@ class PySql:
 
         self.db.commit()
         return self
-
-
-

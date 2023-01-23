@@ -1,7 +1,7 @@
 # PysqlManager
 A python package to manage sql
 
-## GETTING STARTED !
+# GETTING STARTED !
 
 Creating a PySql object is the first step. All function are defined in PySql Class (Which is base class for PysqlManager Module)
 
@@ -28,7 +28,7 @@ Now we can use this meta_class to create actual PySql objcet
     
 
 
-### FETCH ALL DATA FROM SQL TABLE
+## FETCH ALL DATA FROM SQL TABLE
 
     from pysql_manager.types import Column, IntegerType, StringType
     
@@ -92,7 +92,7 @@ List of python dictionaries. Where each dictionary will be a SQL record
 
 ### .select() - To select specific columns from PySqlCollection
     users.fetch_all.select(["age", "id]) -> PySqlCollection
-Since this also returning a PySqlCollection, this can be again chained with all above methods.
+Since this is also returning a PySqlCollection, this can be again chained with all above methods.
 
 Eg
 
@@ -100,3 +100,29 @@ Eg
     users.fetch_all.select(["age", "id]).fisrt()
     users.fetch_all.select(["age", "id]).last()
     users.fetch_all.select(["age", "id]).show()
+
+
+## FILTER DATA FROM SQL
+
+For filtering data from SQL using PySql-Manager just use the inbuilt filter() method
+
+    users.filter("age > 10") -> PySqlFilterObj
+
+<br />
+
+filter is a special method which will return a PySqlFilterObj which can be then used to fetch filtered data
+(which will return same PySqlCollection when using fetch_all() - fetch_all will return all data from SQL, but filter().fetch_filtered will return filtered data)
+or can be used to update, or delete filtered data
+
+<br />
+
+### .fetch_filtered - To get PySqlCollection of filtered SQL data
+        users.filter("age > 10").fecth_filtered -> PySqlCollection
+<br />
+
+### .update() - To update filtered data
+        users.filter("age > 10").update(nam="newName", age="12") -> None
+<br />
+
+### .delete() - To delete filtered data
+        users.filter("age > 10").delete() -> None
