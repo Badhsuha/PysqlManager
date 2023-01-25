@@ -11,7 +11,6 @@ setup(
     url='https://github.com/Badhsuha/PysqlManager',
     author='Badhusha K Muhammed',
     author_email='badhushamuhammed09@gmail.com',
-
     install_requires=['mysql-connector-python',
                       'pandas',
                       'numpy'
