@@ -9,104 +9,123 @@ For creating PySql object we need a meta_class / reference class (meta_class is 
 
 User(id varchar(25), name varchar(20), Age INT)
 
-For above table , the reference class will be 
+For above table , the reference class will be
 
-    from pysql_manager.types import Column, IntegerType, StringType
+```Python
+from pysql_manager.types import Column, IntegerType, StringType
     
-    class User:
-        id = Column(col_type=IntegerType())
-        name = Column(col_type=StringType(25))
-        age = Column(col_type=IntegerType())
-        __table__ = "User"
+class User:
+    id = Column(col_type=IntegerType())
+    name = Column(col_type=StringType(25))
+    age = Column(col_type=IntegerType())
+    __table__ = "User"
 
-Now we can use this meta_class to create actual PySql objcet 
+# Now we can use this meta_class to create actual PySql objcet 
 
-    from pysql_manager import PySql
-
-    users = PySql("localhost", "root", "passowrd", "DB", User)
-    users.fetch_all.show() #sample method for fetching and shoing all the data from table User
-    
+from pysql_manager import PySql
+users = PySql("localhost", "root", "passowrd", "DB", User)
+users.fetch_all.show() #sample method for fetching and showing all the data from table User
+```  
 
 
 ## FETCH ALL DATA FROM SQL TABLE
-
-    from pysql_manager.types import Column, IntegerType, StringType
+```Python
+from pysql_manager.types import Column, IntegerType, StringType
     
-    class User:
-        id = Column(col_type=IntegerType())
-        name = Column(col_type=StringType(25))
-        age = Column(col_type=IntegerType())
-        __table__ = "User"
+class User:
+    id = Column(col_type=IntegerType())
+    name = Column(col_type=StringType(25))
+    age = Column(col_type=IntegerType())
+    __table__ = "User"
     
-        from pysql_manager import PySql
+from pysql_manager import PySql
 
-    users = PySql("localhost", "root", "passowrd", "DB", User)
-    users.fetch_all.show()
+users = PySql("localhost", "root", "passowrd", "DB", User)
+users.fetch_all # Return PySqlConnection
+```
 
-fetch_all method will return a PySqlCollection object , which contain rich functionalities().
+fetch_all method will return a PySqlCollection object , which contain rich functionalities.
 
 <br />
 
 ### .show() - To show data in table form
-    users.fetch_all.show() -> None
+```Python
+users.fetch_all.show()  # Return None
+```
 <br />
 
 ### .first() - Return first row
 A single Row is nothing but an object of base class. For above example , each row will be an object of class User
-means, we can access row.column (In this case row.age, row.id, row.name etc)
+means, we can access `row.column` (In this case row.age, row.id, row.name etc)
 
-    users.fetch_all.fisrt() -> single meta_class object
+```Python
+users.fetch_all.first() # Return single meta_class object
+```
 
 ### .last() - To get last row
-    users.fetch_all.last() -> single meta_class object
+```Python
+users.fetch_all.last() # Return single meta_class object
+```
 <br />
 
 ### .is_empty() - To get last row
-    users.fetch_all.is_empty() -> Boolean
+```Python
+users.fetch_all.is_empty() # Return Boolean
+```
 <br />
 
 ### .count() - To get total count of rows
-    users.fetch_all.count() -> Integer
-<br />
-
-### .count() - To get total count of rows
-    users.fetch_all.count() -> Integer
+```Python
+users.fetch_all.count() # Return Integer
+```
 <br />
 
 ### .to_df() - Create pandas DataFrame
 Column name defined in meta_class will be taken for Pandas DataFrame creation
+```Python
+users.fetch_all.to_df() # Return pandas DataFrame
+```
 
-    users.fetch_all.to_df() -> Pandas DataFrame
 <br />
 
 ### .to_list_dict() - Creates List of python dictionaries
 List of python dictionaries. Where each dictionary will be a SQL record
+```Python
+users.fetch_all.to_list_dict() # Return List[dict]
+```
 
-    users.fetch_all.count() -> List[dict]
 <br />
 
 ### .save_as_csv() - To save PySqlCollection object as CSV file.
+```Python
+users.fetch_all.save_as_csv("path", delimiter="|") # Return None
+```
 
-    users.fetch_all.save_as_csv(path, delimiter="|") -> None
 <br />
 
 ### .select() - To select specific columns from PySqlCollection
-    users.fetch_all.select(["age", "id]) -> PySqlCollection
+```Python
+users.fetch_all.select(["age", "id"]) # Return PySqlCollection 
+```
+    
 Since this is also returning a PySqlCollection, this can be again chained with all above methods.
 
 Eg
-
-    users.fetch_all.select(["age", "id]).count()
-    users.fetch_all.select(["age", "id]).fisrt()
-    users.fetch_all.select(["age", "id]).last()
-    users.fetch_all.select(["age", "id]).show()
-
+```Python
+users.fetch_all.select(["age", "id"]).count()
+users.fetch_all.select(["age", "id"]).fisrt()
+users.fetch_all.select(["age", "id"]).last()
+users.fetch_all.select(["age", "id"]).show()
+```
 
 ## FILTER DATA FROM SQL
 
 For filtering data from SQL using PySql-Manager just use the inbuilt filter() method
+    
 
-    users.filter("age > 10") -> PySqlFilterObj
+```Python
+users.filter("age > 10") # Return PySqlFilterObj
+```
 
 <br />
 
@@ -117,12 +136,56 @@ or can be used to update, or delete filtered data
 <br />
 
 ### .fetch_filtered - To get PySqlCollection of filtered SQL data
-        users.filter("age > 10").fecth_filtered -> PySqlCollection
+```Python
+users.filter("age > 10").fetch_filtered # Return PySqlCollection
+```
 <br />
 
 ### .update() - To update filtered data
-        users.filter("age > 10").update(nam="newName", age="12") -> None
+```Python
+users.filter("age > 10").update(nam="newName", age="12") # Return None
+```
+
 <br />
 
 ### .delete() - To delete filtered data
-        users.filter("age > 10").delete() -> None
+```Python
+users.filter("age > 10").delete() # Return None
+```
+
+## INSERT DATA TO SQL TABLE
+Insert is done using .insert() method, The data should be List of python dictionaries.
+```Python
+from pysql_manager.types import Column, IntegerType, StringType
+    
+class User:
+    id = Column(col_type=IntegerType())
+    name = Column(col_type=StringType(25))
+    age = Column(col_type=IntegerType())
+    __table__ = "User"
+    
+from pysql_manager import PySql
+
+users = PySql("localhost", "root", "passowrd", "DB", User)
+sql_data = [{"id": 1, "name": "user1", "age": 22}, {"id": 2, "name": "user2", "age": 12}] 
+users.insert(sql_data) # Return PySqlConnection
+```
+
+If there is duplicate entry for primary key (In this case `id` column, it will raise `PRIMARY KEY ERROR`). To avoid this and update on duplicate key you can use `update_on_duplicate` argument and pass list columns you need to update when there is a duplicate entry.
+```Python
+from pysql_manager.types import Column, IntegerType, StringType
+    
+class User:
+    id = Column(col_type=IntegerType())
+    name = Column(col_type=StringType(25))
+    age = Column(col_type=IntegerType())
+    __table__ = "User"
+    
+from pysql_manager import PySql
+
+users = PySql("localhost", "root", "passowrd", "DB", User)
+sql_data = [{"id": 1, "name": "user1", "age": 22}, {"id": 2, "name": "user2", "age": 12}] 
+users.insert(sql_data, update_on_duplicate=["age"]) # Return PySqlConnection
+```
+
+
