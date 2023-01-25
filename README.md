@@ -53,7 +53,7 @@ fetch_all method will return a PySqlCollection object , which contain rich funct
 
 ### .first() - Return first row
 A single Row is nothing but an object of base class. For above example , each row will be an object of class User
-means, we can access row.column (In this case row.age, row.id, row.name etc)
+means, we can access `row.column` (In this case row.age, row.id, row.name etc)
 
     users.fetch_all.fisrt() -> single meta_class object
 
@@ -105,8 +105,11 @@ Eg
 ## FILTER DATA FROM SQL
 
 For filtering data from SQL using PySql-Manager just use the inbuilt filter() method
+    
 
-    users.filter("age > 10") -> PySqlFilterObj
+```Cython
+users.filter("age > 10") -> PySqlFilterObj
+```
 
 <br />
 
