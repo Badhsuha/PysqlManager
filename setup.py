@@ -11,7 +11,7 @@ setup(
     url='https://github.com/Badhsuha/PysqlManager',
     author='Badhusha K Muhammed',
     author_email='badhushamuhammed09@gmail.com',
-    license='BSD 2-clause',
+
     install_requires=['mysql-connector-python',
                       'pandas',
                       'numpy'
@@ -26,4 +26,5 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
     ],
+    license='BSD 3-Clause License',
 )
