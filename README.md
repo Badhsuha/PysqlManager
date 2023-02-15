@@ -168,7 +168,7 @@ from pysql_manager import PySql
 
 users = PySql("localhost", "root", "passowrd", "DB", User)
 sql_data = [{"id": 1, "name": "user1", "age": 22}, {"id": 2, "name": "user2", "age": 12}] 
-users.insert(sql_data) # Return PySqlConnection
+users.insert(sql_data) # Return PySql self
 ```
 
 If there is duplicate entry for primary key (In this case `id` column, it will raise `PRIMARY KEY ERROR`). To avoid this and update on duplicate key you can use `update_on_duplicate` argument and pass list columns you need to update when there is a duplicate entry.
@@ -185,7 +185,7 @@ from pysql_manager import PySql
 
 users = PySql("localhost", "root", "passowrd", "DB", User)
 sql_data = [{"id": 1, "name": "user1", "age": 22}, {"id": 2, "name": "user2", "age": 12}] 
-users.insert(sql_data, update_on_duplicate=["age"]) # Return PySqlConnection
+users.insert(sql_data, update_on_duplicate=["age"]) # Return PySql self
 ```
 
 
