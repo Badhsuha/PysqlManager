@@ -1,9 +1,10 @@
 from csv import DictWriter
 from pandas import DataFrame
 from .errors import EmptyPysqlCollectionError, ColumnNotFountInClass
+from .functions import _ColumnFunc
 
 """
-Dynamic Class Creation from given meta class Class base
+Dynamic Class Creation from given meta class base
 """
 
 
@@ -73,12 +74,28 @@ class PySqlCollection:
     @check_data_availability
     def select(self, columns=None):
         if not isinstance(columns, list):
-            print("Pleas pass column")
+            print("Pleas pass column / Column as List")
             return None
 
         mysql_data = list(map(lambda x: (getattr(x, col) for col in columns), self.__data__))
 
+        if len(columns) == 1:
+            return PysqlCollectionSingle(mysql_data, columns, self.__meta_class)
+
         return PySqlCollection(mysql_data, columns, self.__meta_class)
+
+    @check_data_availability
+    def sum(self, col: _ColumnFunc):
+        return {col.alias_name("sum"): sum([getattr(row, col.column_name) for row in self.__data__])}
+
+    def unique(self, col: _ColumnFunc):
+        return {col.alias_name("unique"): list(set([getattr(row, col.column_name) for row in self.__data__]))}
+
+
+class PysqlCollectionSingle(PySqlCollection):
+    def to_list(self):
+        obj_dicts = map(lambda obj: obj.__dict__, self.__data__)
+        return {self.__columns__[0]: list(map(lambda obj: obj[self.__columns__[0]], obj_dicts))}
 
 
 class PySqlFilterObj:

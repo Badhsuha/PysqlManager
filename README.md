@@ -113,7 +113,7 @@ Since this is also returning a PySqlCollection, this can be again chained with a
 Eg
 ```Python
 users.fetch_all.select(["age", "id"]).count()
-users.fetch_all.select(["age", "id"]).fisrt()
+users.fetch_all.select(["age", "id"]).first()
 users.fetch_all.select(["age", "id"]).last()
 users.fetch_all.select(["age", "id"]).show()
 ```
