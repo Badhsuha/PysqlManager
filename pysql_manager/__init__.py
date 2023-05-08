@@ -6,11 +6,11 @@ from .bases import PySqlCollection, PySqlFilterObj
 from .types import Column
 from .errors import ColumnNotFountInClass, TableNotFoundInClass
 
-__version__ = "0.1.0"
+__version__ = "0.1.1.2"
 __author__ = 'Badhusha K Muhammed'
 
 """
-Main Class for bkm-pysql_manager, Used to connect to mysql, Getting data and create PySqpDataCollection
+Main Class for pysql_manager, Used to connect to mysql, Getting data and create PySqlDataCollection
 """
 
 
