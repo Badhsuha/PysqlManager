@@ -1,8 +1,8 @@
 from csv import DictWriter
 from pandas import DataFrame
-from .errors import EmptyPysqlCollectionError, ColumnNotFountInClass
+from .errors import ColumnNotFountInClass
 from .functions import _ColumnFunc
-
+from .wrapper import check_data_availability
 """
 Dynamic Class Creation from given meta class base
 """
@@ -15,24 +15,12 @@ def create_mata(columns, data, meta_class):
 """
 A collection of meta class, for querying data
 """
-
-
 class PySqlCollection:
 
-    def __init__(self, mysql_data, column, meta_class):
-        self.__columns__ = column
+    def __init__(self, mysql_data, columns, meta_class):
+        self.__columns__ = columns
         self.__meta_class = meta_class
-        self.__data__ = [create_mata(column, data, meta_class) for data in mysql_data]
-
-    def check_data_availability(func):
-        def wrap(self, *args, **kwargs):
-            if self.count() != 0:
-                result = func(self, *args, **kwargs)
-                return result
-            else:
-                raise EmptyPysqlCollectionError()
-
-        return wrap
+        self.__data__ = [create_mata(columns, data, meta_class) for data in mysql_data]
 
     @check_data_availability
     def first(self):
@@ -91,6 +79,57 @@ class PySqlCollection:
     def unique(self, col: _ColumnFunc):
         return {col.alias_name("unique"): list(set([getattr(row, col.column_name) for row in self.__data__]))}
 
+    def filter(self, *args, **kwargs):
+
+        if not all([key in self.__columns__ for key in kwargs.keys()]):
+            raise (ColumnNotFountInClass(kwargs.keys(), self.__meta_class.__table__))
+
+        mysql_data = list(map(lambda x: (getattr(x, col) for col in self.__columns__),
+                     list(filter(lambda x: all([getattr(x, col) in kwargs[col] if isinstance(kwargs[col], list)
+                     else getattr(x, col) == kwargs[col] for col in kwargs.keys()]), self.__data__))))
+
+        return PySqlCollection(mysql_data, self.__columns__, self.__meta_class)
+
+    def _filter_in(self, filter_query):
+        pass
+
+    def join(self, pysql_collection, on: str, how: str):
+
+        if "," in on:
+            join_column_self, join_column_other = on.split(",")
+        else:
+            join_column_self, join_column_other = on, on
+
+        if join_column_self not in self.__columns__:
+            raise ColumnNotFountInClass(join_column_self, self.__meta_class.__table__)
+
+        if join_column_other not in pysql_collection.__columns__:
+            raise ColumnNotFountInClass(join_column_other, pysql_collection.__meta_class.__table__)
+
+        list_dict_self = self.to_list_dict()
+        list_dict_other = pysql_collection.to_list_dict()
+
+        common_join_val: set = set([row.get(join_column_self) for row in list_dict_self]).\
+            intersection(set([row.get(join_column_other) for row in list_dict_other]))
+
+        if not common_join_val:
+            return self
+
+        list_dict_self_filter = list(filter(lambda x: x[join_column_self] in common_join_val, list_dict_self))
+        list_dict_other_filter = list(filter(lambda x: x[join_column_other] in common_join_val, list_dict_other))
+
+        for row in list_dict_self_filter:
+            row_to_join = list(filter(lambda x: x[join_column_other] == row[join_column_self],
+                                      list_dict_other_filter))[0]
+
+            for key in row_to_join:
+                row[key] = row_to_join[key]
+
+        mysql_data = [data.values() for data in list_dict_self_filter]
+        join_columns = list_dict_self_filter[0].keys()
+
+        return PySqlCollection(mysql_data, join_columns, self.__meta_class)
+
 
 class PysqlCollectionSingle(PySqlCollection):
     def to_list(self):
@@ -115,14 +154,11 @@ class PySqlFilterObj:
             query = f"UPDATE {self.table} SET " + f"{','.join(set_array)}" + f" WHERE {self._filter_query}"
             self._cursor.execute(query)
             self._db.commit()
-            # print(query)
-            print("Update Done")
 
     def delete(self):
         query = f"DELETE FROM {self.table} WHERE " + self._filter_query
         self._cursor.execute(query)
         self._db.commit()
-        print("Deletion Done")
 
     @property
     def fetch_filtered(self):
