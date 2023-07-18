@@ -3,6 +3,7 @@ from pandas import DataFrame
 from .errors import ColumnNotFountInClass
 from .functions import _ColumnFunc
 from .wrapper import check_data_availability
+
 """
 Dynamic Class Creation from given meta class base
 """
@@ -15,6 +16,8 @@ def create_mata(columns, data, meta_class):
 """
 A collection of meta class, for querying data
 """
+
+
 class PySqlCollection:
 
     def __init__(self, mysql_data, columns, meta_class):
@@ -54,7 +57,7 @@ class PySqlCollection:
             csv_writer.writerows(data)
 
     def show(self):
-        str_po = "{:<10}" * len(self.__columns__)
+        str_po = "".join(["{:<" + f"{len(col) + 2}" + "}" for col in self.__columns__])
         print(str_po.format(*[col for col in self.__columns__]))
         for data in self.__data__:
             print(str_po.format(*[getattr(data, col) for col in self.__columns__]))
@@ -79,19 +82,12 @@ class PySqlCollection:
     def unique(self, col: _ColumnFunc):
         return {col.alias_name("unique"): list(set([getattr(row, col.column_name) for row in self.__data__]))}
 
-    def filter(self, *args, **kwargs):
-
-        if not all([key in self.__columns__ for key in kwargs.keys()]):
-            raise (ColumnNotFountInClass(kwargs.keys(), self.__meta_class.__table__))
+    def filter(self, lambda_function):
 
         mysql_data = list(map(lambda x: (getattr(x, col) for col in self.__columns__),
-                     list(filter(lambda x: all([getattr(x, col) in kwargs[col] if isinstance(kwargs[col], list)
-                     else getattr(x, col) == kwargs[col] for col in kwargs.keys()]), self.__data__))))
+                              list(filter(lambda_function, self.__data__))))
 
         return PySqlCollection(mysql_data, self.__columns__, self.__meta_class)
-
-    def _filter_in(self, filter_query):
-        pass
 
     def join(self, pysql_collection, on: str, how: str):
 
@@ -109,7 +105,7 @@ class PySqlCollection:
         list_dict_self = self.to_list_dict()
         list_dict_other = pysql_collection.to_list_dict()
 
-        common_join_val: set = set([row.get(join_column_self) for row in list_dict_self]).\
+        common_join_val: set = set([row.get(join_column_self) for row in list_dict_self]). \
             intersection(set([row.get(join_column_other) for row in list_dict_other]))
 
         if not common_join_val:
