@@ -1,16 +1,30 @@
 from csv import DictWriter
+from typing import List
+
 from pandas import DataFrame
 from .errors import ColumnNotFountInClass
 from .functions import _ColumnFunc
 from .wrapper import check_data_availability
+from .types import Column
 
 """
 Dynamic Class Creation from given meta class base
 """
 
 
+def generate_data(mysql_data, meta_class, columns) -> List:
+    collection_list = []
+
+    for m_data in mysql_data:
+        meta_cls = create_mata(columns, m_data, meta_class)
+        collection_list.append(meta_cls)
+
+    return collection_list
+
+
 def create_mata(columns, data, meta_class):
-    return type(meta_class.__table__, (), {column: d for column, d in zip(columns, data)})
+
+    return type(meta_class.__table__, (), {column: getattr(meta_class, column).set_value(d, column) for column, d in zip(columns, data)})
 
 
 """
@@ -23,7 +37,7 @@ class PySqlCollection:
     def __init__(self, mysql_data, columns, meta_class):
         self.__columns__ = columns
         self.__meta_class = meta_class
-        self.__data__ = [create_mata(columns, data, meta_class) for data in mysql_data]
+        self.__data__ = generate_data(mysql_data, meta_class, columns)
 
     @check_data_availability
     def first(self):
@@ -33,19 +47,18 @@ class PySqlCollection:
     def last(self):
         return self.__data__[-1]
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return not bool(self.__data__)
 
-    def count(self):
+    def count(self) -> int:
         return len(self.__data__)
 
     @check_data_availability
-    def to_df(self):
+    def to_df(self) -> DataFrame:
         return DataFrame.from_dict(self.to_list_dict())
 
-    def to_list_dict(self):
-        obj_dicts = map(lambda obj: obj.__dict__, self.__data__)
-        return list(map(lambda obj: {key: obj[key] for key in obj if key in self.__columns__}, obj_dicts))
+    def to_list_dict(self) -> List[dict]:
+        return list(map(lambda data: {col: getattr(data, col).get_value() for col in self.__columns__}, self.__data__))
 
     @check_data_availability
     def save_as_csv(self, path, delimiter=","):
