@@ -1,3 +1,4 @@
+import sys
 from typing import List
 
 import mysql.connector
@@ -24,6 +25,7 @@ class PySql:
         )
         self._meta_class = meta_class
         self.columns = list(filter(lambda x: isinstance(getattr(self._meta_class, x), Column), dir(meta_class)))
+
         try:
             self.table = getattr(self._meta_class, "__table__")
         except AttributeError:

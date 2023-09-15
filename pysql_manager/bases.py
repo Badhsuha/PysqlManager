@@ -1,3 +1,4 @@
+import sys
 from csv import DictWriter
 from typing import List
 
@@ -5,6 +6,7 @@ from pandas import DataFrame
 from .errors import ColumnNotFountInClass
 from .functions import _ColumnFunc
 from .wrapper import check_data_availability
+from .types import StringType, IntegerType
 from .types import Column
 
 """
@@ -24,7 +26,11 @@ def generate_data(mysql_data, meta_class, columns) -> List:
 
 def create_mata(columns, data, meta_class):
 
-    return type(meta_class.__table__, (), {column: getattr(meta_class, column).set_value(d, column) for column, d in zip(columns, data)})
+    return type(meta_class.__table__, (),
+
+                {column: _get_class_of(meta_class, column)(length=_get_col_feature(meta_class, column, "length")).set_value(d)
+
+                 for column, d in zip(columns, data)})
 
 
 """
@@ -70,10 +76,10 @@ class PySqlCollection:
             csv_writer.writerows(data)
 
     def show(self):
-        str_po = "".join(["{:<" + f"{len(col) + 2}" + "}" for col in self.__columns__])
+        str_po = "".join(["{:<" + f"{len(col) + 5}" + "}" for col in self.__columns__])
         print(str_po.format(*[col for col in self.__columns__]))
         for data in self.__data__:
-            print(str_po.format(*[getattr(data, col) for col in self.__columns__]))
+            print(str_po.format(*[getattr(data, col).get_value() for col in self.__columns__]))
 
     @check_data_availability
     def select(self, columns=None):
@@ -81,7 +87,7 @@ class PySqlCollection:
             print("Pleas pass column / Column as List")
             return None
 
-        mysql_data = list(map(lambda x: (getattr(x, col) for col in columns), self.__data__))
+        mysql_data = list(map(lambda x: [getattr(x, col).get_value() for col in columns], self.__data__))
 
         if len(columns) == 1:
             return PysqlCollectionSingle(mysql_data, columns, self.__meta_class)
@@ -97,12 +103,15 @@ class PySqlCollection:
 
     def filter(self, lambda_function):
 
-        mysql_data = list(map(lambda x: (getattr(x, col) for col in self.__columns__),
-                              list(filter(lambda_function, self.__data__))))
+        mysql_data = list(map(lambda x: (getattr(x, col).get_value() for col in self.__columns__),
+                              list(filter(lambda x: x.name == "badhusha", self.__data__))))
 
         return PySqlCollection(mysql_data, self.__columns__, self.__meta_class)
 
-    def join(self, pysql_collection, on: str, how: str):
+    # def map(self, map_function):
+    #     mysql_data_after_map =
+
+    def join(self, pysql_collection, on: str, how: str = ""):
 
         if "," in on:
             join_column_self, join_column_other = on.split(",")
@@ -117,7 +126,7 @@ class PySqlCollection:
 
         list_dict_self = self.to_list_dict()
         list_dict_other = pysql_collection.to_list_dict()
-
+        print(list_dict_other)
         common_join_val: set = set([row.get(join_column_self) for row in list_dict_self]). \
             intersection(set([row.get(join_column_other) for row in list_dict_other]))
 
@@ -131,19 +140,21 @@ class PySqlCollection:
             row_to_join = list(filter(lambda x: x[join_column_other] == row[join_column_self],
                                       list_dict_other_filter))[0]
 
-            for key in row_to_join:
-                row[key] = row_to_join[key]
+            row.update(row_to_join)
 
         mysql_data = [data.values() for data in list_dict_self_filter]
         join_columns = list_dict_self_filter[0].keys()
 
-        return PySqlCollection(mysql_data, join_columns, self.__meta_class)
+        # print(join_columns)
+        new_meat_class = _join_meta_class(self.__meta_class, pysql_collection.__meta_class,pysql_collection.__columns__)
+
+        return PySqlCollection(mysql_data, join_columns, new_meat_class)
 
 
 class PysqlCollectionSingle(PySqlCollection):
     def to_list(self):
-        obj_dicts = map(lambda obj: obj.__dict__, self.__data__)
-        return {self.__columns__[0]: list(map(lambda obj: obj[self.__columns__[0]], obj_dicts))}
+        return {
+            self.__columns__[0]: list(map(lambda rec: getattr(rec, self.__columns__[0]).get_value(), self.__data__))}
 
 
 class PySqlFilterObj:
@@ -173,3 +184,18 @@ class PySqlFilterObj:
     def fetch_filtered(self):
         self._cursor.execute(f"SELECT {','.join(self.columns)} from {self.table} WHERE {self._filter_query}")
         return PySqlCollection(self._cursor.fetchall(), self.columns, self._meta_class)
+
+
+def _get_class_of(meta_class, col):
+    return eval(getattr(meta_class, col).__class__.__name__)
+
+
+def _get_col_feature(meta_class, col, feature):
+    return getattr(getattr(meta_class, col), feature)
+
+
+def _join_meta_class(meta_class, meta_class_other, col_other):
+    for col in col_other:
+        setattr(meta_class, col, getattr(meta_class_other, col))
+
+    return meta_class
