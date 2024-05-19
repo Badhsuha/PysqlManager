@@ -5,7 +5,7 @@ Column Class:
 from __future__ import annotations
 
 
-class Column:
+class _Column:
     def __init__(self):
         self.c_data = None
 
@@ -16,20 +16,20 @@ class Column:
     def get_value(self):
         return self.c_data
 
-    # def __str__(self):
-    #     return f"{self.c_data}"
+    def __str__(self):
+        return f"{self.c_data}"
 
-    def __repr__(self):
-        return "Some String"
+    def __eq__(self, other):
+        return self.get_value() == other
 
 
-class StringType(Column):
+class StringType(_Column):
     def __init__(self, length):
         self.length = length
         super().__init__()
 
 
-class IntegerType(Column):
+class IntegerType(_Column):
     def __init__(self, **kwargs):
         self.length = None
         super().__init__()

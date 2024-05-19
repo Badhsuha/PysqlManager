@@ -1,4 +1,4 @@
-from .errors import EmptyPysqlCollectionError
+from pysql_manager.errors import EmptyPysqlCollectionError
 
 
 def check_data_availability(func):

@@ -1,37 +1,10 @@
-import sys
-from csv import DictWriter
-from typing import List
-
 from pandas import DataFrame
-from .errors import ColumnNotFountInClass
-from .functions import _ColumnFunc
-from .wrapper import check_data_availability
-from .types import StringType, IntegerType
-from .types import Column
-
-"""
-Dynamic Class Creation from given meta class base
-"""
-
-
-def generate_data(mysql_data, meta_class, columns) -> List:
-    collection_list = []
-
-    for m_data in mysql_data:
-        meta_cls = create_mata(columns, m_data, meta_class)
-        collection_list.append(meta_cls)
-
-    return collection_list
-
-
-def create_mata(columns, data, meta_class):
-
-    return type(meta_class.__table__, (),
-
-                {column: _get_class_of(meta_class, column)(length=_get_col_feature(meta_class, column, "length")).set_value(d)
-
-                 for column, d in zip(columns, data)})
-
+from csv import DictWriter
+from typing import List, Callable
+from pysql_manager.errors import ColumnNotFountInClass
+from pysql_manager.functions import _ColumnFunc
+from pysql_manager.core.wrapper import check_data_availability
+from pysql_manager.types import StringType, IntegerType
 
 """
 A collection of meta class, for querying data
@@ -43,7 +16,7 @@ class PySqlCollection:
     def __init__(self, mysql_data, columns, meta_class):
         self.__columns__ = columns
         self.__meta_class = meta_class
-        self.__data__ = generate_data(mysql_data, meta_class, columns)
+        self.__data__ = _generate_data(mysql_data, meta_class, columns)
 
     @check_data_availability
     def first(self):
@@ -99,56 +72,14 @@ class PySqlCollection:
         return {col.alias_name("sum"): sum([getattr(row, col.column_name) for row in self.__data__])}
 
     def unique(self, col: _ColumnFunc):
-        return {col.alias_name("unique"): list(set([getattr(row, col.column_name) for row in self.__data__]))}
+        return {col.alias_name("unique"): list(set([getattr(row, col.column_name).get_value() for row in self.__data__]))}
 
-    def filter(self, lambda_function):
+    def filter(self, lambda_function: Callable):
 
         mysql_data = list(map(lambda x: (getattr(x, col).get_value() for col in self.__columns__),
-                              list(filter(lambda x: x.name == "badhusha", self.__data__))))
+                              list(filter(lambda_function, self.__data__))))
 
         return PySqlCollection(mysql_data, self.__columns__, self.__meta_class)
-
-    # def map(self, map_function):
-    #     mysql_data_after_map =
-
-    def join(self, pysql_collection, on: str, how: str = ""):
-
-        if "," in on:
-            join_column_self, join_column_other = on.split(",")
-        else:
-            join_column_self, join_column_other = on, on
-
-        if join_column_self not in self.__columns__:
-            raise ColumnNotFountInClass(join_column_self, self.__meta_class.__table__)
-
-        if join_column_other not in pysql_collection.__columns__:
-            raise ColumnNotFountInClass(join_column_other, pysql_collection.__meta_class.__table__)
-
-        list_dict_self = self.to_list_dict()
-        list_dict_other = pysql_collection.to_list_dict()
-        print(list_dict_other)
-        common_join_val: set = set([row.get(join_column_self) for row in list_dict_self]). \
-            intersection(set([row.get(join_column_other) for row in list_dict_other]))
-
-        if not common_join_val:
-            return self
-
-        list_dict_self_filter = list(filter(lambda x: x[join_column_self] in common_join_val, list_dict_self))
-        list_dict_other_filter = list(filter(lambda x: x[join_column_other] in common_join_val, list_dict_other))
-
-        for row in list_dict_self_filter:
-            row_to_join = list(filter(lambda x: x[join_column_other] == row[join_column_self],
-                                      list_dict_other_filter))[0]
-
-            row.update(row_to_join)
-
-        mysql_data = [data.values() for data in list_dict_self_filter]
-        join_columns = list_dict_self_filter[0].keys()
-
-        # print(join_columns)
-        new_meat_class = _join_meta_class(self.__meta_class, pysql_collection.__meta_class,pysql_collection.__columns__)
-
-        return PySqlCollection(mysql_data, join_columns, new_meat_class)
 
 
 class PysqlCollectionSingle(PySqlCollection):
@@ -194,8 +125,25 @@ def _get_col_feature(meta_class, col, feature):
     return getattr(getattr(meta_class, col), feature)
 
 
-def _join_meta_class(meta_class, meta_class_other, col_other):
-    for col in col_other:
-        setattr(meta_class, col, getattr(meta_class_other, col))
+"""
+Dynamic Class Creation from given meta class base
+"""
 
-    return meta_class
+
+def _generate_data(mysql_data, meta_class, columns) -> List:
+    collection_list = []
+
+    for m_data in mysql_data:
+        meta_cls = _create_mata(columns, m_data, meta_class)
+        collection_list.append(meta_cls)
+
+    return collection_list
+
+
+def _create_mata(columns, data, meta_class):
+
+    return type(meta_class.__table__, (),
+
+                {column: _get_class_of(meta_class, column)(length=_get_col_feature(meta_class, column, "length")).set_value(d)
+
+                 for column, d in zip(columns, data)})
