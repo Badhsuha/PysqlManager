@@ -1,3 +1,4 @@
+import sys
 from typing import List
 import mysql.connector
 from mysql.connector.errors import ProgrammingError
@@ -50,9 +51,11 @@ class PySql:
 
     def insert(self, ins_data: List[dict], update_on_duplicate=None):
         query = f"INSERT INTO {self.table}({','.join(self.columns)}) VALUES "
-        gen = ["(" + ','.join([f"'{data.get(col)}'" for col in self.columns]) + ")" for data in ins_data]
+        gen = ["(" + ','.join([f"'{data.get(col) if data.get(col) else  getattr(self._meta_class, col).default}'" for col in self.columns]) + ")" for data in ins_data]
 
         ex_query = query + ",".join(gen)
+        print(ex_query)
+        # sys.exit(-1)
         if update_on_duplicate is not None:
             ex_query += "ON DUPLICATE KEY UPDATE " + ",".join([f"{col}=VALUES({col})" for col in update_on_duplicate])
 

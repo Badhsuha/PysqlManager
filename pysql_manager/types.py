@@ -24,12 +24,14 @@ class _Column:
 
 
 class StringType(_Column):
-    def __init__(self, length):
-        self.length = length
+    def __init__(self, length, default=""):
         super().__init__()
+        self.default = default
+        self.length = length
 
 
 class IntegerType(_Column):
-    def __init__(self, **kwargs):
-        self.length = None
+    def __init__(self, default=-1, **kwargs):
         super().__init__()
+        self.default = default
+        self.length = None
