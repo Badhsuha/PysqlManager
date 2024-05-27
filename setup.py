@@ -6,7 +6,7 @@ long_description = (this_dir / "README.md").read_text()
 
 setup(
     name='pysql_manager',
-    version='0.0.1.2',
+    version='0.0.3',
     description='A python package for managing Mysql',
     url='https://github.com/Badhsuha/PysqlManager',
     author='Badhusha K Muhammed',
@@ -26,4 +26,5 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     license='BSD 3-Clause License',
+    python_reuires=">= 3.6"
 )
