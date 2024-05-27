@@ -1,9 +1,9 @@
 class ColumnNotFountInClass(Exception):
-    def __init__(self, columns, table, message="Column `{0}` not found in master class for table "):
-        self.columns = columns
+    def __init__(self, columns, table, message="Column {0} not found in master class for table "):
+        self.salary = columns
         self.table = table
         self.message = message
-        super().__init__(self.message.format(columns if isinstance(columns, str) else ",".join(list(columns))) + self.table)
+        super().__init__(self.message.format(list(columns)) + self.table)
 
 
 class TableNotFoundInClass(Exception):

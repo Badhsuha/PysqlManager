@@ -13,41 +13,35 @@ For above table , the reference class will be
 
 ```Python
 from pysql_manager.types import Column, IntegerType, StringType
-
-
+    
 class User:
     id = Column(col_type=IntegerType())
     name = Column(col_type=StringType(25))
     age = Column(col_type=IntegerType())
     __table__ = "User"
-
 
 # Now we can use this meta_class to create actual PySql objcet 
 
 from pysql_manager import PySql
-
 users = PySql("localhost", "root", "passowrd", "DB", User)
-users.fetch_all.show()  # sample method for fetching and showing all the data from table User
+users.fetch_all.show() #sample method for fetching and showing all the data from table User
 ```  
 
 
 ## FETCH ALL DATA FROM SQL TABLE
-
 ```Python
 from pysql_manager.types import Column, IntegerType, StringType
-
-
+    
 class User:
     id = Column(col_type=IntegerType())
     name = Column(col_type=StringType(25))
     age = Column(col_type=IntegerType())
     __table__ = "User"
-
-
+    
 from pysql_manager import PySql
 
 users = PySql("localhost", "root", "passowrd", "DB", User)
-users.fetch_all  # Return PySqlConnection
+users.fetch_all # Return PySqlConnection
 ```
 
 fetch_all method will return a PySqlCollection object , which contain rich functionalities.
@@ -161,43 +155,37 @@ users.filter("age > 10").delete() # Return None
 
 ## INSERT DATA TO SQL TABLE
 Insert is done using .insert() method, The data should be List of python dictionaries.
-
 ```Python
 from pysql_manager.types import Column, IntegerType, StringType
-
-
+    
 class User:
     id = Column(col_type=IntegerType())
     name = Column(col_type=StringType(25))
     age = Column(col_type=IntegerType())
     __table__ = "User"
-
-
+    
 from pysql_manager import PySql
 
 users = PySql("localhost", "root", "passowrd", "DB", User)
-sql_data = [{"id": 1, "name": "user1", "age": 22}, {"id": 2, "name": "user2", "age": 12}]
-users.insert(sql_data)  # Return PySql self
+sql_data = [{"id": 1, "name": "user1", "age": 22}, {"id": 2, "name": "user2", "age": 12}] 
+users.insert(sql_data) # Return PySql self
 ```
 
 If there is duplicate entry for primary key (In this case `id` column, it will raise `PRIMARY KEY ERROR`). To avoid this and update on duplicate key you can use `update_on_duplicate` argument and pass list columns you need to update when there is a duplicate entry.
-
 ```Python
 from pysql_manager.types import Column, IntegerType, StringType
-
-
+    
 class User:
     id = Column(col_type=IntegerType())
     name = Column(col_type=StringType(25))
     age = Column(col_type=IntegerType())
     __table__ = "User"
-
-
+    
 from pysql_manager import PySql
 
 users = PySql("localhost", "root", "passowrd", "DB", User)
-sql_data = [{"id": 1, "name": "user1", "age": 22}, {"id": 2, "name": "user2", "age": 12}]
-users.insert(sql_data, update_on_duplicate=["age"])  # Return PySql self
+sql_data = [{"id": 1, "name": "user1", "age": 22}, {"id": 2, "name": "user2", "age": 12}] 
+users.insert(sql_data, update_on_duplicate=["age"]) # Return PySql self
 ```
 
 
